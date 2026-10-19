@@ -117,3 +117,94 @@ test (b : @bench.T) {
     b.keep(ds_iterate_pow(jt, 0, 999999))
   })
 }
+
+// 對照 8：函數圖共軛判定——規範形 O(n²) vs 置換窮舉 O(n!)
+
+///|
+///\
+test (b : @bench.T) {
+  let ds1 = make_dyn(11, Array::makei(11, fn(x) { (x + 1) % 11 }))
+  // 以置換 h 重標號得共軛系統
+  let hh = [3, 1, 7, 5, 0, 6, 2, 4, 10, 8, 9]
+  let inv = Array::makei(11, fn(_i) { 0 })
+  for i in 0..<11 {
+    inv[hh[i]] = i
+  }
+  let ds2 = make_dyn(11, Array::makei(11, fn(x) { hh[ds1.f[inv[x]]] }))
+  b.bench(name="conjugacy_permutation_n!", fn() {
+    b.keep(are_conjugate(ds1, ds2))
+  })
+  b.bench(name="conjugacy_canonical_n2", fn() {
+    b.keep(are_conjugate_canonical(ds1, ds2))
+  })
+}
+
+// 對照 9：有根樹規範化——Read 排序 O(n log n) vs 窮舉子樹次序 O(2^k)
+
+///|
+fn combine_choices(
+  subs : Array[Array[Array[Int32]]],
+  order : Array[Int32],
+  pos : Int32,
+  cur : Array[Int32],
+  out : Array[Array[Int32]],
+) -> Unit {
+  if pos == order.length() {
+    out.push(cur.copy())
+    return
+  }
+  for s in subs[order[pos]] {
+    let nxt = cur.copy()
+    for x in s {
+      nxt.push(x)
+    }
+    combine_choices(subs, order, pos + 1, nxt, out)
+  }
+}
+
+///|
+/// 窮舉所有子樹次序的先序編碼（指數級）
+fn all_orderings(t : Array[Array[Int32]], v : Int32) -> Array[Array[Int32]] {
+  let ch = t[v]
+  if ch.length() == 0 {
+    return [[v]]
+  }
+  let subs : Array[Array[Array[Int32]]] = []
+  for c in ch {
+    subs.push(all_orderings(t, c))
+  }
+  let out : Array[Array[Int32]] = []
+  for perm in permutations(ch.length()) {
+    combine_choices(subs, perm, 0, [], out)
+  }
+  out
+}
+
+///|
+fn naive_tree_canon(t : Array[Array[Int32]]) -> Array[Int32] {
+  let mut best = all_orderings(t, 0)[0]
+  for s in all_orderings(t, 0) {
+    if cmp_int_array(s, best) < 0 {
+      best = s
+    }
+  }
+  best
+}
+
+///|
+test (b : @bench.T) {
+  // 完全二元樹（深度 4）：15 個內部節點 + 16 片葉
+  let t1 : Array[Array[Int32]] = Array::makei(31, fn(_i) { [] })
+  for i in 0..<15 {
+    t1[i].push(2 * i + 1)
+    t1[i].push(2 * i + 2)
+  }
+  // 同構副本：左右子樹對調
+  let t2 : Array[Array[Int32]] = Array::makei(31, fn(_i) { [] })
+  for i in 0..<15 {
+    t2[i].push(2 * i + 2)
+    t2[i].push(2 * i + 1)
+  }
+  b.bench(name="tree_canon_enumerate_2^k", fn() { b.keep(naive_tree_canon(t1)) })
+  b.bench(name="tree_canon_read_nlogn", fn() { b.keep(canon_tree(t1)) })
+}

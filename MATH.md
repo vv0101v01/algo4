@@ -403,3 +403,123 @@ $h(0)=x_0$，$h(n)=f^n(x_0)$。
 
 **基準實證**（`bench_wbtest.mbt`）：`generic_sum` 與手寫特化
 `int_sum` 之執行時間相同（誤差範圍內）——抽象成本為零。
+
+
+---
+
+## 21. 規範形式與典範定理（`canonical.mbt`）
+
+**規範形式（canonical form）**：對數學結構指定唯一代表元，使
+「相等判定」化為「代表元比較」。本專案對全部模組逐一範疇化，
+歸為五大範疇（`canonical_index()` 列舉，`verify_taxonomy_complete()`
+驗證覆蓋完整性）：
+
+### 範疇 I. 重寫規範形（rewriting）
+
+| 模組 | 規範形 | 定理 | 演算法 |
+|---|---|---|---|
+| `algebra` | Smith 範形 $\mathrm{diag}(s_1,\dots,s_r,0,\dots)$，$s_1\mid\cdots\mid s_r$ | Smith：存在且唯一（$s_i=d_i/d_{i-1}$，$d_i$ = 所有 $i$ 階子式之 gcd） | 輾轉相除消去＋整除性修正 |
+| `algebra` | 有限交換群不變因子 $[d_1\mid\cdots\mid d_r]$ | 結構定理：$G\cong\mathbb{Z}/d_1\oplus\cdots\oplus\mathbb{Z}/d_r$ | 元素階計數 $c_k=\#\{x:x^{p^k}=e\}$ 反推初等因子 |
+| `ccc` | STLC βη-長範式 | 正規化＋Church–Rosser：長範式唯一；兩項 βη-等價 ⟺ 長範式同 | $eta$ 歸約後 $\eta$-展長（reify） |
+| `free` | 自由約化詞 | 自由群範式定理（字問題可解） | $O(n)$ 棧歸一 |
+| `linear` | 無切歸約核 | 切消保持正確性；歸約核冪等 | 切消除＋死鏈修剪 |
+| `zerocost` | 單態化特化副本 | 零成本抽象 | 編譯期單態化 |
+
+**公式（Smith 範形）**：$\exists$ 單模 $P,Q$ 使 $PAQ=\mathrm{diag}(s_1,\dots,s_r,0,\dots,0)$，
+$s_1\mid s_2\mid\cdots\mid s_r$，且 $s_1\cdots s_i=d_i(A)$（$i$ 階子式之 gcd）。
+
+**公式（η-展長）**：$(\sigma	o	au)$ 型項 $t\mapsto\lambda x{:}\sigma.\,t\,x$
+（若 $t$ 非 λ 抽象）；底層型別不變。
+
+### 範疇 II. 矩陣規範形
+
+| 模組 | 規範形 | 定理 | 演算法 |
+|---|---|---|---|
+| `cohomology` | $F_p$ 上 RREF | 行等價類唯一代表；秩 = 軸元數 | Gauss–Jordan（mod $p$） |
+| `derived` | 整係數同調 $(r,\{s_i\})$ | $H_n\cong\mathbb{Z}^r\oplusigoplus\mathbb{Z}/s_i$ | 兩次 SNF |
+
+**公式（秩–零化度）**：$\dim H^n=(\dim C^n-\mathrm{rank}\,d^n)-\mathrm{rank}\,d^{n-1}$。
+
+**公式（整係數同調）**：$H_n=\ker\partial_n/\mathrm{im}\,\partial_{n+1}$，
+自由秩 $=(\dim\ker\partial_n)-\mathrm{rank}\,\partial_{n+1}$，
+撓部 = $\partial_{n+1}$ 的不變因子（$>1$ 者）。
+例：$\mathbb{RP}^2$：$H_0=\mathbb{Z}$，$H_1=\mathbb{Z}/2$，$H_2=0$。
+
+### 範疇 III. 範疇論規範形
+
+| 模組 | 規範形 | 定理 | 演算法 |
+|---|---|---|---|
+| `category` | 骨架 $\mathrm{skel}(C)$ | $C\simeq\mathrm{skel}(C)$；等價 ⟺ 骨架同構 | 並查集合併同構物件 |
+| `topos` | 特徵映射 $\chi:F	o\Omega$ | 子對象分類器：$\mathrm{Sub}(F)\cong\mathrm{Hom}(F,\Omega)$ | 子預層枚舉 |
+| `pseudo` | 嚴格化 | Mac Lane 相干性：偽函子等價於嚴格函子 | 座標改變吸收上循環 |
+| `groupoid` | 群胚骨架 $\sqcup_i\mathrm{Aut}(x_i)$ | 連通群胚 $G\simeq\sqcup_i\mathrm{Aut}(x_i)$ | 分量分解＋頂點群 |
+| `groupoid` | 群胚基數 $\chi(G)=\sum_{[x]}1/\#\mathrm{Aut}(x)$ | Baez–Dolan：等價不變量，對 $\sqcup$ 可加、對 $	imes$ 可乘 | 骨架求和（精確分數） |
+| `derived` | 極小複形 $(H_ullet,0)$ | 域上 $C\simeq H(C)$（擬同構）；極小模型唯一 | 逐次取 $H_n$ |
+| `flat` | 元素範疇 $\int F$ | Grothendieck：$F$ 平坦 ⟺ $\int F$ 餘濾過 | 物件 $(c,x)$、箭號 $F(h)(x)=x'$ |
+| `homotopy_algebra` | 極小 $A_\infty$-模型 | Kadeishvili：$H(A)$ 承 $A_\infty$-結構，$m_1=0$，唯一（至 $A_\infty$-同構） | 同倫轉移 $m_2,m_3$ |
+
+**公式（群胚基數）**：$\chi(G)=\sum_{[x]\in\pi_0(G)}rac{1}{\#\mathrm{Aut}(x)}$，
+例如 $\chi(BG)=1/|G|$，$\chi(G_1\sqcup G_2)=\chi(G_1)+\chi(G_2)$。
+
+### 範疇 IV. 組合規範形
+
+| 模組 | 規範形 | 定理 | 演算法 |
+|---|---|---|---|
+| `systems` | 函數圖碼：分量 =（環長＋環上樹簽名，循環最小旋轉），分量排序 | 共軛 ⟺ 規範形相同 | $O(n)$ 剝離＋樹簽名＋旋轉最小化，$O(n^2)$ |
+| `topology` | 有限空間 core | Stong：core 唯一（至同胚）；$X\simeq Y$ ⟺ $\mathrm{core}(X)\cong\mathrm{core}(Y)$ | 迭代剝離 beat point，$O(n^3)$ |
+| `topology` | 專化預序矩陣的排列字典序最小者 | 同胚 ⟺ 規範形相同 | 暴力排列 $O(n!\,n^2)$（$n\le6$） |
+| `operad` | Read 樹字 $s(v)=0\cdot\mathrm{sort}(s(	ext{子}))\cdot1$ | $\mathrm{canon}(T_1)=\mathrm{canon}(T_2)\Leftrightarrow T_1\cong T_2$ | bottom-up 排序拼接，$O(n\log n)$ |
+
+**公式（函數圖分量碼）**：$C(L;\{t_0,\dots,t_{L-1}\})$ 取循環旋轉
+$\min_{	ext{rot}}$；整圖碼 = $\mathrm{sort}(\{C_i\})$。
+
+**公式（beat point）**：$x$ 為 beat point ⟺ $\{y:y<x\}$ 有最大元
+或 $\{y:y>x\}$ 有最小元；剝離 $x$ 保持同倫型。
+
+### 範疇 V. 代數規範形
+
+| 模組 | 規範形 | 定理 | 演算法 |
+|---|---|---|---|
+| `galois` | 子群共軛類（每類取字典序最小代表） | 共軛劃分子群格；正規子群 = 單點類 | 共軛作用＋最小化 |
+| `tannaka` | 特徵標分解 $
+ho\congigoplus_k m_k\chi_k$ | Maschke＋正交性：$m_k=\langle\chi_
+ho,\chi_k
+angle$ 唯一；$
+ho$ 不可約 ⟺ $\langle\chi,\chi
+angle=1$ | 特徵標內積（mod $p$） |
+| `algorithms` | 複雜度 $\Theta$-範形（主導單項式） | $\Theta$-等價 ⟺ 主導單項式同 | 解析＋合併同類項 |
+| `homott` | $S^1$ 道路 $\mathrm{loop}^n$ | Canonicity：閉路徑項唯一決定 $n$ | 編解碼雙射 |
+
+**公式（特徵標內積）**：$\langle\chi,\psi
+angle=rac{1}{|G|}\sum_{g}\chi(g)\overline{\psi(g)}$，
+不可約特徵標正交規範 $\langle\chi_i,\chi_j
+angle=\delta_{ij}$。
+
+## 22. 衍生演算法與定理（`derived_index()`）
+
+由規範形導出之演算法與定理（`verify_all_derived()` 逐一驗證）：
+
+1. **有限交換群分類**（導出自有 SNF）：$G\congigoplus\mathbb{Z}/d_i$，
+   $d_1\mid\cdots\mid d_r$，round-trip 驗證；$\mathbb{Z}/8
+ot\cong\mathbb{Z}/2\oplus\mathbb{Z}/4$。
+2. **整係數同調算法**（導出自 SNF）：$H_n$ 的自由秩與撓部一次算出
+   （圓周 $H_*=(\mathbb{Z},\mathbb{Z})$；$\mathbb{RP}^2$：$H_1=\mathbb{Z}/2$）。
+3. **秩–零化度交叉驗證**（導出自 RREF）：以獨立 rank 實作對抗模組維數公式。
+4. **範疇等價判定**（導出自骨架）：薄範疇等價 ⟺ 骨架預序規範形同。
+5. **群胚基數性質**（導出自骨架）：$\chi(BG)=1/|G|$；$\chi(G\sqcup G)=2\chi(G)$。
+6. **Whitehead 型定理**（導出自極小模型）：域上複形與同調複形擬同構。
+7. **Grothendieck 平坦判準**（導出自元素範疇）：$F$ 平坦 ⟺ $\int F$ 餘濾過。
+8. **函數圖共軛判定**（導出自函數圖規範形）：$O(n^2)$ 取代 $O(n!)$
+   （基準實證 ≈8200×）。
+9. **有限空間同倫分類**（導出自 core）：Stong 定理；同胚 ⟺ 規範標號同。
+10. **自由 operad 詞問題**（導出自 Read 規範化）：樹元相等 ⟺ 規範字同
+    （基準實證 ≈1600× 對窮舉子樹次序）。
+11. **子群格類方程**（導出自共軛類）：$\sum_{	ext{類}}|	ext{類}|=|\mathrm{Sub}(G)|$；
+    $S_3$ 有 4 類（3 個正規子群 + 一個三元素類）。
+12. **表示分解算法**（導出自特徵標）：$Z/n$ 於 $F_p$（$p\equiv1mod n$）
+    正則表示 = 全不可約各一次。
+13. **Curry–Howard 完全性**（導出自 βη-長範式）：不同長範式 = 不同證明。
+14. **自由群字問題**（導出自約化詞）：$O(n)$ 相等判定。
+15. **切消正確性保持**（導出自歸約核）：網正確 ⟺ 無切核正確。
+16. **Kadeishvili 極小性**（導出自極小 $A_\infty$-模型）：轉移 $m_2$ 在同調上嚴格結合。
+17. **$\Theta$-等價判定**（導出自複雜度範形）：主導單項式相同 ⟺ $\Theta$-等價。

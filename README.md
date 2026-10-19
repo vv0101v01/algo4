@@ -17,7 +17,7 @@ export PATH="$HOME/.moon/bin:$PATH"
 
 ```bash
 moon build     # 編譯（全模組綠）
-moon test      # 執行 162 項白盒測試
+moon test      # 執行 185 項白盒測試
 moon bench     # 執行複雜度對照基準測試
 moon fmt       # 格式化
 ```
@@ -46,6 +46,7 @@ moon fmt       # 格式化
 | `systems.mbt` | 動力系統（函子 ℕ→Set） | Floyd 龜兔 $O(\mu{+}\lambda)$、環分解 $O(n)$、二進制提升 $O(\log m)$ |
 | `algorithms.mbt` | 複雜度比較樞紐 | 各演算法 naive 對照 + 步數計數 |
 | `zerocost.mbt` | 零成本抽象示範 | trait 單態化、`#inline` |
+| `canonical.mbt` | **規範形式總彙（五大範疇）** | Smith 範形、βη-長範式、骨架、core、Read 樹規範化、特徵標分解 |
 
 ## 複雜度降低（基準測試實證）
 
@@ -55,6 +56,8 @@ poly_mul_ntt             298 µs     poly_mul_naive       3.25 ms   (≈11×)
 zeta_sos                 2.4 µs     zeta_naive            64 µs    (≈27×)
 gmm_parsing_polynomial   1.0 µs     dr_switching_exp.    2.45 ms   (≈2450×)
 ds_iterate_binary_lifting 19 ns     ds_iterate_naive     1.47 ms   (≈78000×)
+conjugacy_canonical_n2   7.4 µs     conjugacy_permutation 60.8 ms  (≈8200×)
+tree_canon_read_nlogn    4.0 µs     tree_canon_enum.      6.4 ms    (≈1600×)
 generic_sum              317 ns     specialized_sum      317 ns    (零成本)
 ```
 

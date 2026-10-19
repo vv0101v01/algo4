@@ -8,7 +8,7 @@
 ///        A∞ 同倫轉移、Dold–Kan 對應、HoTT 單值性。
 fn main {
   println("catmath: category-theoretic algorithms on MoonBit")
-  println("modules: 18  |  tests: moon test  |  benchmarks: moon bench")
+  println("modules: 21  |  tests: moon test  |  benchmarks: moon bench")
   // 編譯期常量摺疊示範（zerocost.mbt）
   let _ = zero_cost_demo()
   // 自由幺半群萬有性質示範（free.mbt）：Z2 上的詞求值

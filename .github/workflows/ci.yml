@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test-bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MoonBit
+        run: curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+      - name: Format check
+        run: export PATH="$HOME/.moon/bin:$PATH" && moon fmt --check
+      - name: Build
+        run: export PATH="$HOME/.moon/bin:$PATH" && moon build
+      - name: Test
+        run: export PATH="$HOME/.moon/bin:$PATH" && moon test
+      - name: Bench
+        run: export PATH="$HOME/.moon/bin:$PATH" && moon bench
